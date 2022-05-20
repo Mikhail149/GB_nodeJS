@@ -2,10 +2,11 @@ const colors = require("colors/safe");
 const EventEmitter = require("events");
 
 const eventEmitter = new EventEmitter();
+let arrArguments = process.argv.slice([2]);
 
 const parsingAguments = (argumets) => {
   let dateArr = [];
-  for (let i = 2; i < argumets.length; i++) {
+  for (let i = 0; i < argumets.length; i++) {
     let dataTimer = argumets[i].split('-');
     let [hours, date, month, year] = dataTimer;
     //Проверка корректности введенных данных
@@ -37,14 +38,13 @@ const parsingAguments = (argumets) => {
       let dateTimer = new Date(year, month - 1, date, hours)
       if (dateTimer.getTime() < Date.now()) {
         let timeIsGone = `Время для таймера №${i - 1} уже ушло`
-        console.log(timeIsGone);
-        eventEmitter.emit("messageErr", timeIsGone);
+        eventEmitter.emit("message", colors.red(timeIsGone));
       } else {
         dateArr.push(dateTimer);
       }
     } else {
       let messErr = `Аргумент №${i - 1} введен не корректно`;
-      eventEmitter.emit("messageErr", messErr);
+      eventEmitter.emit("message", colors.red(messErr));
     }
   }
   return (dateArr);
@@ -65,7 +65,7 @@ const createMessage = (timersArr) => {
         mess += `${ostYear} лет `;
       }
       if (ostMonth != 0) {
-        mess += `${ostYear} месяцев `;
+        mess += `${ostMonth} месяцев `;
       }
       if (ostDay != 0) {
         mess += `${ostDay} дней `;
@@ -83,28 +83,15 @@ const createMessage = (timersArr) => {
     } else {
       timersArr.slice([i], [i]);
       let messEndTimer = 'Таймер №' + (i - 1) + ' закончился'
-      eventEmitter.emit("endTimer", messEndTimer);
+      eventEmitter.emit("message", colors.green(messEndTimer));
     }
   }
+  eventEmitter.emit("message", "");
 }
 
-let timersArr = parsingAguments(process.argv);
-
-setInterval(() => createMessage(timersArr), 1000);
-
-eventEmitter.on("messageErr", function (data) {
-  console.log(colors.red(data));
-});
 eventEmitter.on("message", function (data) {
   console.log(data);
 });
-eventEmitter.on("endTimer", function (data) {
-  console.log(colors.green(data));
-})
 
-
-// час-день-месяц-год
-// 11-15-05-2022
-//new Date(year, month, date, hours, minutes, seconds, ms)
-//if (curentDate.getTime() < oldDate.getTime()) - Сравнение двух дат
-// Date.now() Получение текущей даты в милисекундном формате
+let timersArr = parsingAguments(arrArguments);
+setInterval(() => createMessage(timersArr), 1000);
